@@ -1,23 +1,24 @@
-here<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REKO V16 - SUPREME CONTROL</title>
+    <title>REKO V16 - TELEGRAM CONTROL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <style>
-        :root { --gold: #D4AF37; --neon: #00FF00; --bg: #000; }
-        body { background-color: var(--bg); color: var(--neon); font-family: sans-serif; text-align: center; padding: 10px; }
-        .dev-header { border-bottom: 3px solid var(--gold); padding: 15px; margin-bottom: 20px; box-shadow: 0 0 15px var(--gold); }
+        :root { --gold: #D4AF37; --neon: #00FF00; --bg: #000; --red: #ff3333; }
+        body { background-color: var(--bg); color: var(--neon); font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .dev-header { border: 2px solid var(--gold); background: #000; padding: 15px; margin-bottom: 25px; box-shadow: 0 0 20px var(--gold); border-radius: 10px; }
         .dev-name { color: var(--gold); font-size: 24px; font-weight: bold; }
-        .box { border: 2px solid var(--gold); padding: 20px; border-radius: 20px; background: #050505; max-width: 450px; margin: 15px auto; }
-        input { padding: 15px; width: 85%; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: #111; color: var(--gold); text-align: center; font-size: 18px; }
-        .btn-main { background: var(--gold); color: #000; padding: 15px; width: 90%; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; font-size: 18px; }
+        .box { border: 2px solid var(--gold); padding: 25px; border-radius: 25px; background: rgba(5,5,5,0.9); max-width: 450px; margin: 15px auto; }
+        input { padding: 15px; width: 85%; margin: 12px 0; border-radius: 12px; border: 1px solid #333; background: #111; color: var(--gold); text-align: center; font-size: 18px; }
+        .btn-main { background: var(--gold); color: #000; padding: 18px; width: 95%; border-radius: 15px; font-weight: bold; border: none; cursor: pointer; font-size: 18px; }
         .hidden { display: none; }
-        .res-display { background: #000; border: 1px solid var(--neon); padding: 25px; border-radius: 15px; font-size: 24px; margin: 15px 0; }
+        .res-display { background: #000; border: 2px solid var(--neon); padding: 25px; border-radius: 20px; font-size: 24px; margin: 20px 0; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .game-btn { background: #111; padding: 20px; border-radius: 12px; border: 1px solid #333; font-size: 22px; color: #fff; }
+        .game-btn { background: #111; padding: 20px; border-radius: 15px; border: 1px solid #444; font-size: 24px; color: #fff; }
     </style>
 </head>
 <body>
@@ -27,45 +28,54 @@ here<!DOCTYPE html>
     </div>
 
     <div id="loginGate" class="box">
-        <h2 style="color: var(--gold);">نظام الدخول الموحد</h2>
+        <h2 style="color: var(--gold);">بوابة السيطرة السحابية</h2>
         <input type="text" id="authKey" placeholder="أدخل كود الاشتراك">
-        <button class="btn-main" onclick="authorize()">دخول المشتركين</button>
-    </div>
-
-    <div id="adminConsole" class="box hidden" style="border-color: red;">
-        <h2 style="color: red;">🛠️ مصنع الأكواد السحابي</h2>
-        <input type="text" id="keyName" placeholder="اسم الكود الجديد">
-        <input type="number" id="keyDuration" placeholder="المدة بالساعات">
-        <button class="btn-main" style="background: red; color: white;" onclick="createKey()">توليد وحفظ سحابي</button>
-        <div id="keyStatus" style="margin-top:10px; color: var(--gold);"></div>
+        <button class="btn-main" onclick="authorize()">دخول النظام</button>
     </div>
 
     <div id="userInterface" class="box hidden">
-        <div id="expiryCount" style="color: red; margin-bottom: 10px;"></div>
+        <div id="expiry" style="color:red; margin-bottom:10px;"></div>
         <div class="res-display" id="resDisplay">مزامنة (0/4)</div>
         <div class="grid" id="btnGrid"></div>
     </div>
 
+    <div id="adminConsole" class="box hidden" style="border-color: red;">
+        <h2 style="color: red;">🛠️ مصنع الأكواد (التلجرام متصل)</h2>
+        <input type="text" id="keyName" placeholder="اسم الكود">
+        <input type="number" id="keyDuration" placeholder="المدة بالساعات">
+        <button class="btn-main" style="background: red; color: white;" onclick="createKey()">توليد وإرسال إشعار للتلجرام</button>
+        <div id="status" style="margin-top:10px;"></div>
+    </div>
+
     <script>
-        // --- ضع رابط Firebase الخاص بك هنا لكي يشتغل الكود ---
+        // --- إعدادات السحابة والتلجرام ---
         const config = { databaseURL: "https://reko-predator-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(config);
         const db = firebase.database();
 
+        // بيانات التلجرام (ضع الـ Token والـ ID الخاص بك هنا)
+        const tgBotToken = "ضع_هنا_التوكن_الخاص_بك";
+        const tgChatId = "ضع_هنا_الايدي_الخاص_بك";
+
+        function sendTelegramMessage(text) {
+            const url = `https://api.telegram.org/bot${tgBotToken}/sendMessage?chat_id=${tgChatId}&text=${encodeURIComponent(text)}`;
+            fetch(url);
+        }
+
         function authorize() {
             const key = document.getElementById('authKey').value;
-            // كود المبرمج لفتح المصنع
             if(key === "REKO-MASTER-3000") {
                 document.getElementById('loginGate').classList.add('hidden');
                 document.getElementById('adminConsole').classList.remove('hidden');
+                sendTelegramMessage("⚠️ تنبيه: تم فتح لوحة التحكم الرئيسية!");
                 return;
             }
-            // التحقق من السحابة
             db.ref('active_keys/' + key).once('value').then((snap) => {
                 const data = snap.val();
                 if(data && new Date().getTime() < data.expiresAt) {
+                    sendTelegramMessage(`✅ دخول مشترك جديد بالكود: ${key}`);
                     startApp(data.expiresAt);
-                } else { alert("الكود غير صحيح أو انتهى اشتراكه!"); }
+                } else { alert("الكود غير صالح!"); }
             });
         }
 
@@ -74,16 +84,22 @@ here<!DOCTYPE html>
             const hours = document.getElementById('keyDuration').value;
             const expireAt = new Date().getTime() + (hours * 60 * 60 * 1000);
             db.ref('active_keys/' + name).set({ expiresAt: expireAt }).then(() => {
-                document.getElementById('keyStatus').innerText = `✅ تم الحفظ: ${name}`;
+                document.getElementById('status').innerText = "✅ تم صنع الكود";
+                sendTelegramMessage(`🛠️ تم صنع كود جديد بنجاح:\nالاسم: ${name}\nالمدة: ${hours} ساعة`);
             });
         }
 
-        let history = [];
         function startApp(expiry) {
             document.getElementById('loginGate').classList.add('hidden');
             document.getElementById('userInterface').classList.remove('hidden');
+            // باقي محرك التوقعات (الكتكوت والسمكة) يوضع هنا كما في النسخ السابقة
+            loadEngine();
+        }
+
+        function loadEngine() {
             const items = ["🐥", "🐟", "🐂", "🍤", "🍅", "🥕", "🌶️", "🌽"];
             const grid = document.getElementById('btnGrid');
+            let history = [];
             items.forEach(item => {
                 let b = document.createElement('button');
                 b.className = 'game-btn'; b.innerText = item;
