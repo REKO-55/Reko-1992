@@ -3,126 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REKO V30 - COMMAND & CONTROL</title>
+    <title>REKO V16 - DEVICE LOCK SYSTEM</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
-        :root { --gold: #D4AF37; --neon: #00FF00; --bg: #000; }
-        body { background-color: var(--bg); color: var(--neon); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 15px; }
-        .box { border: 2px solid var(--gold); padding: 25px; border-radius: 20px; background: #050505; box-shadow: 0 0 25px rgba(212, 175, 55, 0.2); max-width: 500px; margin: 20px auto; }
-        input { padding: 15px; width: 85%; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: #111; color: var(--gold); text-align: center; font-size: 18px; }
-        .btn-main { background: var(--gold); color: #000; padding: 15px; width: 90%; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; font-size: 18px; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
+        :root { --gold: #D4AF37; --neon: #00FF00; --bg: #000; --red: #ff4444; }
+        body { background-color: var(--bg); color: var(--neon); font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .dev-header { background: #111; border-bottom: 3px solid var(--gold); padding: 15px; box-shadow: 0 0 20px var(--gold); }
+        .dev-name { color: var(--gold); font-size: 24px; font-weight: bold; }
+        .box { border: 2px solid var(--gold); padding: 20px; border-radius: 20px; background: #050505; max-width: 450px; margin: 15px auto; }
+        input { padding: 15px; width: 85%; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: #111; color: var(--gold); text-align: center; }
+        .btn-main { background: var(--gold); color: #000; padding: 15px; width: 90%; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; }
         .hidden { display: none; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .game-btn { background: #111; color: #fff; padding: 20px; border-radius: 12px; border: 1px solid #333; font-weight: bold; font-size: 18px; }
-        .admin-panel { border-color: #ff0000; box-shadow: 0 0 25px rgba(255, 0, 0, 0.4); }
-        .res-display { background: #000; border: 1px solid var(--neon); padding: 25px; border-radius: 15px; font-size: 24px; margin: 20px 0; color: #fff; min-height: 60px; }
+        .timer-badge { background: var(--red); color: #fff; padding: 5px 10px; border-radius: 50px; font-size: 12px; margin-bottom: 10px; display: inline-block; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .game-btn { background: #1a1a1a; color: #fff; padding: 15px; border-radius: 12px; border: 1px solid #333; font-size: 20px; }
+        .res-display { background: #000; border: 1px solid var(--neon); padding: 20px; border-radius: 15px; font-size: 22px; margin: 15px 0; color: #fff; }
     </style>
 </head>
 <body>
 
-    <div id="loginGate" class="box">
-        <h1 style="color: var(--gold);">REKO PREDATOR V30</h1>
-        <p style="color: #666;">نظام السيطرة السحابي المباشر</p>
-        <input type="text" id="authKey" placeholder="أدخل مفتاح VIP الخاص بك">
-        <button class="btn-main" onclick="authorize()">تفعيل المحركات</button>
-        <p style="font-size: 10px; color: #444; margin-top: 20px;">المبرمج: البروفيسور 3000</p>
+    <div class="dev-header">
+        <div class="dev-name">👑 المبرمج ريكو بريديتور 👑</div>
     </div>
 
-    <div id="adminConsole" class="box admin-panel hidden">
-        <h2 style="color: #ff0000;">لوحة تصنيع الأكواد 🛠️</h2>
-        <input type="text" id="keyName" placeholder="اسم المفتاح (مثلاً: REKO-USER-1)">
-        <input type="number" id="keyDuration" placeholder="المدة بالساعات (مثلاً: 24)">
-        <button class="btn-main" style="background: #ff0000; color: #fff;" onclick="createKey()">توليد المفتاح السحابي</button>
-        <div id="keyStatus" style="margin-top: 15px; font-size: 14px; color: var(--gold);"></div>
+    <div id="loginGate" class="box">
+        <h2 style="color: var(--gold);">نظام حماية الأجهزة VIP</h2>
+        <input type="text" id="authKey" placeholder="أدخل كود الاشتراك">
+        <button class="btn-main" onclick="authorize()">تسجيل الدخول</button>
     </div>
 
     <div id="userInterface" class="box hidden">
-        <h2 style="color: var(--gold);">VIP ACCESS ACTIVE 🟢</h2>
-        <div id="expiryCount" style="font-size: 12px; color: #ff4444;"></div>
-        <div class="res-display" id="resDisplay">مزامنة الشريط (0/4)</div>
+        <div class="timer-badge" id="timeLeft">متبقي: جاري الحساب...</div>
+        <div class="res-display" id="resDisplay">مزامنة (0/4)</div>
         <div class="grid" id="btnGrid"></div>
     </div>
 
+    <div id="adminConsole" class="box hidden" style="border-color: var(--red);">
+        <h2 style="color: var(--red);">لوحة التصنيع</h2>
+        <input type="text" id="keyName" placeholder="اسم الكود">
+        <input type="number" id="keyDuration" placeholder="المدة بالساعات">
+        <button class="btn-main" style="background: var(--red); color: white;" onclick="createKey()">توليد الكود</button>
+    </div>
+
     <script>
-        // --- إعدادات الاتصال بقاعدة البيانات (Firebase) ---
-        // استبدل الرابط أدناه برابط Realtime Database الخاص بك من جوجل
-        const config = { databaseURL: "https://your-project-default-rtdb.firebaseio.com/" };
+        // --- الربط بالسحابة ---
+        const config = { databaseURL: "https://reko-predator-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // --- نظام المصادقة والسيطرة ---
+        // توليد بصمة فريدة للجهاز (User Agent + Screen Width)
+        const deviceFingerprint = btoa(navigator.userAgent + window.screen.width);
+
         function authorize() {
             const key = document.getElementById('authKey').value;
-            
-            // كود المبرمج السري (للدخول للوحة التحكم)
             if(key === "REKO-MASTER-3000") {
                 document.getElementById('loginGate').classList.add('hidden');
                 document.getElementById('adminConsole').classList.remove('hidden');
                 return;
             }
 
-            // التحقق من مفاتيح المشتركين في السحابة
             db.ref('active_keys/' + key).once('value').then((snap) => {
                 const data = snap.val();
                 if(data) {
                     const now = new Date().getTime();
-                    if(now < data.expiresAt) {
-                        showApp(key, data.expiresAt);
+                    
+                    // 1. التحقق من الوقت
+                    if(now > data.expiresAt) {
+                        alert("انتهى وقت الاشتراك!");
+                        return;
+                    }
+
+                    // 2. التحقق من قفل الجهاز (Device Lock)
+                    if(!data.deviceId) {
+                        // إذا كان الدخول الأول، نسجل بصمة الجهاز
+                        db.ref('active_keys/' + key).update({ deviceId: deviceFingerprint });
+                        startApp(key, data.expiresAt);
+                    } else if(data.deviceId === deviceFingerprint) {
+                        // إذا كان نفس الجهاز، نسمح بالدخول
+                        startApp(key, data.expiresAt);
                     } else {
-                        alert("عذراً.. انتهى وقت هذا المفتاح!");
+                        // إذا كان جهازاً مختلفاً، نرفض الدخول
+                        alert("❌ خطأ: هذا الكود مفعل على جهاز آخر فقط!");
                     }
                 } else {
-                    alert("المفتاح غير مسجل في السحابة!");
+                    alert("الكود غير موجود!");
                 }
             });
         }
 
-        // --- وظيفة تصنيع الأكواد (للمبرمج فقط) ---
-        function createKey() {
-            const name = document.getElementById('keyName').value;
-            const hours = document.getElementById('keyDuration').value;
-            if(!name || !hours) return alert("أدخل البيانات كاملة!");
-
-            const expireAt = new Date().getTime() + (hours * 60 * 60 * 1000);
-            db.ref('active_keys/' + name).set({
-                expiresAt: expireAt,
-                createdAt: new Date().getTime()
-            }).then(() => {
-                document.getElementById('keyStatus').innerText = `✅ تم صنع المفتاح: ${name} (صالح لـ ${hours} ساعة)`;
-            });
-        }
-
-        // --- تشغيل نسخة V16 المستمرة للمشترك ---
-        let history = [];
-        function showApp(key, expiry) {
+        function startApp(key, expiry) {
             document.getElementById('loginGate').classList.add('hidden');
             document.getElementById('userInterface').classList.remove('hidden');
             
-            const hoursLeft = Math.round((expiry - new Date().getTime()) / (1000 * 60 * 60));
-            document.getElementById('expiryCount').innerText = `ينتهي اشتراكك بعد: ${hoursLeft} ساعة`;
+            setInterval(() => {
+                const diff = expiry - new Date().getTime();
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('timeLeft').innerText = `متبقي: ${hours}ساعة و ${mins}دقيقة`;
+            }, 1000);
 
-            const grid = document.getElementById('btnGrid');
+            loadEngine();
+        }
+
+        let history = [];
+        function loadEngine() {
             const items = ["🐥", "🐟", "🐂", "🍤", "🍅", "🥕", "🌶️", "🌽"];
+            const grid = document.getElementById('btnGrid');
             items.forEach(item => {
                 let b = document.createElement('button');
-                b.className = 'game-btn';
-                b.innerText = item;
+                b.className = 'game-btn'; b.innerText = item;
                 b.onclick = () => {
-                    history.push(item);
-                    if(history.length > 4) history.shift();
+                    history.push(item); if(history.length > 4) history.shift();
                     const disp = document.getElementById('resDisplay');
-                    if(history.length < 4) {
-                        disp.innerText = `مزامنة: ${history.length}/4`;
-                    } else {
+                    if(history.length < 4) disp.innerText = `مزامنة: ${history.length}/4`;
+                    else {
                         const r = items.sort(() => .5 - Math.random()).slice(0,4);
-                        disp.innerHTML = `🎯 ${r[0]} | 🎯 ${r[1]} <br> 🎯 ${r[2]} | 🎯 ${r[3]}`;
-                        disp.style.color = "#00FF00";
+                        disp.innerHTML = `🎯 ${r[0]} | ${r[1]} <br> ${r[2]} | ${r[3]}`;
                     }
                 };
                 grid.appendChild(b);
             });
+        }
+
+        function createKey() {
+            const name = document.getElementById('keyName').value;
+            const hours = document.getElementById('keyDuration').value;
+            const expireAt = new Date().getTime() + (hours * 60 * 60 * 1000);
+            db.ref('active_keys/' + name).set({ 
+                expiresAt: expireAt,
+                deviceId: null // نتركه فارغاً ليأخذه أول جهاز يدخل
+            }).then(() => { alert("تم صنع كود محمي بنجاح!"); });
         }
     </script>
 </body>
