@@ -3,117 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REKO V16 - TELEGRAM CONTROL</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
+    <title>REKO LEGEND - SMART VARIETY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@900&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #D4AF37; --neon: #00FF00; --bg: #000; --red: #ff3333; }
-        body { background-color: var(--bg); color: var(--neon); font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 10px; }
-        .dev-header { border: 2px solid var(--gold); background: #000; padding: 15px; margin-bottom: 25px; box-shadow: 0 0 20px var(--gold); border-radius: 10px; }
-        .dev-name { color: var(--gold); font-size: 24px; font-weight: bold; }
-        .box { border: 2px solid var(--gold); padding: 25px; border-radius: 25px; background: rgba(5,5,5,0.9); max-width: 450px; margin: 15px auto; }
-        input { padding: 15px; width: 85%; margin: 12px 0; border-radius: 12px; border: 1px solid #333; background: #111; color: var(--gold); text-align: center; font-size: 18px; }
-        .btn-main { background: var(--gold); color: #000; padding: 18px; width: 95%; border-radius: 15px; font-weight: bold; border: none; cursor: pointer; font-size: 18px; }
-        .hidden { display: none; }
-        .res-display { background: #000; border: 2px solid var(--neon); padding: 25px; border-radius: 20px; font-size: 24px; margin: 20px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .game-btn { background: #111; padding: 20px; border-radius: 15px; border: 1px solid #444; font-size: 24px; color: #fff; }
+        :root { --gold: #D4AF37; --neon: #00FF00; --bg: #050505; }
+        body { background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
+        .reko-header { border: 3px solid var(--gold); padding: 20px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 0 25px var(--gold); background: rgba(0,0,0,0.9); }
+        .reko-header h1 { color: var(--gold); margin: 0; font-size: 26px; }
+        .prediction-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .slot { background: #000; border: 3px solid var(--neon); padding: 25px; border-radius: 20px; font-size: 50px; min-height: 90px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 20px var(--neon); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .symbols-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .live-btn { background: #111; border: 2px solid #333; padding: 18px; border-radius: 50%; font-size: 32px; cursor: pointer; transition: 0.3s; animation: float-move 4s infinite ease-in-out; }
+        @keyframes float-move { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .live-btn:active { transform: scale(0.7); border-color: var(--gold); }
+        .status-bar { background: #111; border: 1px solid var(--gold); color: var(--neon); padding: 12px; border-radius: 50px; margin-bottom: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="dev-header">
-        <div class="dev-name">👑 المبرمج ريكو بريديتور 👑</div>
+    <div class="reko-header">
+        <h1>👑 المبرمج ريكو بريديتور 👑</h1>
     </div>
 
-    <div id="loginGate" class="box">
-        <h2 style="color: var(--gold);">بوابة السيطرة السحابية</h2>
-        <input type="text" id="authKey" placeholder="أدخل كود الاشتراك">
-        <button class="btn-main" onclick="authorize()">دخول النظام</button>
+    <div class="status-bar" id="chainStatus">أدخل 4 رموز سابقة لفك شفرة التنوع...</div>
+
+    <div style="max-width: 480px; margin: auto;">
+        <div class="prediction-container">
+            <div class="slot" id="p1">?</div>
+            <div class="slot" id="p2">?</div>
+            <div class="slot" id="p3">?</div>
+            <div class="slot" id="p4">?</div>
+        </div>
+        <div class="symbols-grid" id="mainGrid"></div>
     </div>
 
-    <div id="userInterface" class="box hidden">
-        <div id="expiry" style="color:red; margin-bottom:10px;"></div>
-        <div class="res-display" id="resDisplay">مزامنة (0/4)</div>
-        <div class="grid" id="btnGrid"></div>
-    </div>
-
-    <div id="adminConsole" class="box hidden" style="border-color: red;">
-        <h2 style="color: red;">🛠️ مصنع الأكواد (التلجرام متصل)</h2>
-        <input type="text" id="keyName" placeholder="اسم الكود">
-        <input type="number" id="keyDuration" placeholder="المدة بالساعات">
-        <button class="btn-main" style="background: red; color: white;" onclick="createKey()">توليد وإرسال إشعار للتلجرام</button>
-        <div id="status" style="margin-top:10px;"></div>
-    </div>
+    <audio id="clickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="hitSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
     <script>
-        // --- إعدادات السحابة والتلجرام ---
-        const config = { databaseURL: "https://reko-predator-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(config);
-        const db = firebase.database();
+        const fruits = ["🍅", "🥕", "🌶️", "🌽"];
+        const rares = ["🐥", "🐟", "🐂", "🍤"];
+        const allItems = [...fruits, ...rares];
+        let history = [];
 
-        // بيانات التلجرام (ضع الـ Token والـ ID الخاص بك هنا)
-        const tgBotToken = "ضع_هنا_التوكن_الخاص_بك";
-        const tgChatId = "ضع_هنا_الايدي_الخاص_بك";
+        const grid = document.getElementById('mainGrid');
+        allItems.forEach(item => {
+            let b = document.createElement('button');
+            b.className = 'live-btn';
+            b.innerText = item;
+            b.onclick = () => processInput(item);
+            grid.appendChild(b);
+        });
 
-        function sendTelegramMessage(text) {
-            const url = `https://api.telegram.org/bot${tgBotToken}/sendMessage?chat_id=${tgChatId}&text=${encodeURIComponent(text)}`;
-            fetch(url);
-        }
-
-        function authorize() {
-            const key = document.getElementById('authKey').value;
-            if(key === "REKO-MASTER-3000") {
-                document.getElementById('loginGate').classList.add('hidden');
-                document.getElementById('adminConsole').classList.remove('hidden');
-                sendTelegramMessage("⚠️ تنبيه: تم فتح لوحة التحكم الرئيسية!");
-                return;
+        function processInput(item) {
+            document.getElementById('clickSound').play();
+            history.push(item);
+            if(history.length > 4) history.shift();
+            const status = document.getElementById('chainStatus');
+            if(history.length < 4) {
+                status.innerText = `المزامنة: ${history.length} / 4`;
+            } else {
+                status.innerText = `✅ تم التحليل بنجاح - احتمالات فريدة`;
+                document.getElementById('hitSound').play();
+                generateUniquePrediction();
             }
-            db.ref('active_keys/' + key).once('value').then((snap) => {
-                const data = snap.val();
-                if(data && new Date().getTime() < data.expiresAt) {
-                    sendTelegramMessage(`✅ دخول مشترك جديد بالكود: ${key}`);
-                    startApp(data.expiresAt);
-                } else { alert("الكود غير صالح!"); }
-            });
         }
 
-        function createKey() {
-            const name = document.getElementById('keyName').value;
-            const hours = document.getElementById('keyDuration').value;
-            const expireAt = new Date().getTime() + (hours * 60 * 60 * 1000);
-            db.ref('active_keys/' + name).set({ expiresAt: expireAt }).then(() => {
-                document.getElementById('status').innerText = "✅ تم صنع الكود";
-                sendTelegramMessage(`🛠️ تم صنع كود جديد بنجاح:\nالاسم: ${name}\nالمدة: ${hours} ساعة`);
-            });
-        }
+        function generateUniquePrediction() {
+            // محرك التنوع: خلط المصفوفة واختيار 4 عناصر مختلفة تماماً
+            let shuffled = [...allItems].sort(() => 0.5 - Math.random());
+            let selected = shuffled.slice(0, 4); 
 
-        function startApp(expiry) {
-            document.getElementById('loginGate').classList.add('hidden');
-            document.getElementById('userInterface').classList.remove('hidden');
-            // باقي محرك التوقعات (الكتكوت والسمكة) يوضع هنا كما في النسخ السابقة
-            loadEngine();
-        }
-
-        function loadEngine() {
-            const items = ["🐥", "🐟", "🐂", "🍤", "🍅", "🥕", "🌶️", "🌽"];
-            const grid = document.getElementById('btnGrid');
-            let history = [];
-            items.forEach(item => {
-                let b = document.createElement('button');
-                b.className = 'game-btn'; b.innerText = item;
-                b.onclick = () => {
-                    history.push(item); if(history.length > 4) history.shift();
-                    const disp = document.getElementById('resDisplay');
-                    if(history.length < 4) disp.innerText = `مزامنة: ${history.length}/4`;
-                    else {
-                        const r = items.sort(() => .5 - Math.random()).slice(0,4);
-                        disp.innerHTML = `🎯 ${r[0]} | ${r[1]} <br> ${r[2]} | ${r[3]}`;
-                    }
-                };
-                grid.appendChild(b);
-            });
+            for(let i=1; i<=4; i++) {
+                const slot = document.getElementById(`p${i}`);
+                slot.style.transform = "scale(0.3)";
+                setTimeout(() => {
+                    slot.innerText = selected[i-1];
+                    slot.style.transform = "scale(1)";
+                    slot.style.borderColor = (rares.includes(selected[i-1])) ? "#D4AF37" : "#00FF00";
+                }, i * 150);
+            }
         }
     </script>
 </body>
