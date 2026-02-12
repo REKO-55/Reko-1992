@@ -3,102 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REKO V100 - VISION ANALYZER</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@900&display=swap" rel="stylesheet">
+    <title>REKO SNIPER V5 - THE ONE TARGET</title>
     <style>
-        :root { --gold: #D4AF37; --neon: #00FF00; --bg: #000; }
-        body { background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding: 10px; }
+        :root { --gold: #D4AF37; --cyan: #00f2ff; --red: #ff4d4d; --green: #00ff41; --bg: #010206; }
+        body { background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 10px; }
         
-        /* الهيدر الأسطوري */
-        .v100-header { border: 3px solid var(--gold); padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 0 20px var(--gold); }
-        .v100-header h1 { color: var(--gold); margin: 0; font-size: 24px; }
+        .header { text-align: center; color: var(--cyan); font-size: 11px; border: 1px solid #1a2a4a; padding: 6px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 0 15px var(--cyan); letter-spacing: 1px; }
 
-        /* منطقة معاينة الصورة */
-        #image-preview-box {
-            width: 100%; max-width: 300px; height: 150px; border: 2px dashed #444;
-            margin: 15px auto; border-radius: 15px; display: flex; align-items: center;
-            justify-content: center; overflow: hidden; background: #0a0a0a;
+        /* شاشة الهدف القناص (الهدف الواحد) */
+        .sniper-scope { 
+            background: radial-gradient(circle, #0a1428, #000); 
+            border: 3px solid var(--gold); border-radius: 25px; 
+            padding: 20px; margin-bottom: 20px; text-align: center;
+            position: relative; box-shadow: 0 0 30px rgba(212,175,55,0.4);
         }
-        #image-preview-box img { width: 100%; height: auto; }
+        .sniper-label { font-size: 12px; color: var(--gold); margin-bottom: 10px; font-weight: bold; }
+        #target-num { font-size: 85px; font-weight: bold; line-height: 1; text-shadow: 0 0 20px var(--gold); color: #fff; }
+        
+        /* تفاصيل الهدف الملحقة */
+        .target-details { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+        .detail-box { background: rgba(255,255,255,0.05); border: 1px solid var(--cyan); padding: 8px 20px; border-radius: 12px; font-size: 16px; font-weight: bold; }
+        .active-detail { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px var(--green); }
 
-        /* زر الالتقاط الفخم */
-        .scan-btn {
-            background: linear-gradient(45deg, #D4AF37, #b8860b); color: #000;
-            padding: 15px 30px; border-radius: 50px; border: none; font-weight: bold;
-            font-size: 18px; cursor: pointer; margin-bottom: 20px; box-shadow: 0 0 15px var(--gold);
-        }
+        /* سجل التاريخ الصغير */
+        .h-grid { display: flex; justify-content: center; gap: 5px; margin-bottom: 20px; }
+        .h-node { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 1px solid #333; }
 
-        .prediction-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
-        .slot { background: #111; border: 2px solid var(--neon); padding: 20px; border-radius: 20px; font-size: 45px; min-height: 80px; box-shadow: inset 0 0 10px var(--neon); }
+        /* لوحة الأرقام (0-36) */
+        .numpad { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; background: #0a1428; padding: 10px; border-radius: 18px; border: 1px solid var(--gold); }
+        .n-btn { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 0; border-radius: 8px; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .n-red { background: var(--red); }
+        .n-zero { background: #27AE60; grid-column: span 6; font-size: 20px; }
+        .n-btn:active { transform: scale(0.9); background: var(--cyan); color: #000; }
+
+        .btn-analyze { background: linear-gradient(to bottom, var(--gold), #8a6e00); border: none; padding: 20px; border-radius: 50px; width: 100%; font-weight: bold; font-size: 22px; color: #000; margin-top: 20px; cursor: pointer; box-shadow: 0 0 25px var(--gold); transition: 0.3s; }
     </style>
 </head>
 <body>
 
-    <div class="v100-header">
-        <h1>👑 المبرمج ريكو - المحلل البصري 👑</h1>
+    <div class="header">CORE ENGINE: REKO SNIPER V5 ACTIVE</div>
+
+    <div class="sniper-scope">
+        <div class="sniper-label">🎯 الهدف القادم الأكيد</div>
+        <div id="target-num">--</div>
+        
+        <div class="target-details">
+            <div class="detail-box" id="det-color">اللون</div>
+            <div class="detail-box" id="det-type">النوع</div>
+        </div>
     </div>
 
-    <label for="image-upload" class="scan-btn">📷 التقط صورة للعبة للتحليل</label>
-    <input type="file" id="image-upload" accept="image/*" capture="environment" style="display: none;" onchange="analyzeImage(event)">
-
-    <div id="image-preview-box">
-        <span id="placeholder-text" style="color: #444;">لا توجد صورة حالياً</span>
+    <div class="h-grid" id="h-grid">
+        <div class="h-node">-</div><div class="h-node">-</div>
+        <div class="h-node">-</div><div class="h-node">-</div>
+        <div class="h-node">-</div>
     </div>
 
-    <div style="color: var(--neon); margin-bottom: 10px; font-size: 14px;" id="status-text">بانتظار الصورة لفك التشفير...</div>
-
-    <div class="prediction-slots">
-        <div class="slot" id="p1">?</div>
-        <div class="slot" id="p2">?</div>
-        <div class="slot" id="p3">?</div>
-        <div class="slot" id="p4">?</div>
+    <div class="numpad" id="numpad">
+        <button class="n-btn n-zero" onclick="input(0)">0</button>
     </div>
+
+    <button class="btn-analyze" onclick="analyze()">تفعيل قنص المحركات</button>
 
     <script>
-        const fruits = ["🍅", "🥕", "🌶️", "🌽"];
-        const rares = ["🐥", "🐟", "🐂", "🍤"];
+        const redNums = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+        const wheel = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+        let logs = [];
 
-        function analyzeImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                // إظهار معاينة الصورة
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const box = document.getElementById('image-preview-box');
-                    box.innerHTML = `<img src="${e.target.result}" />`;
-                    
-                    document.getElementById('status-text').innerText = "⏳ جاري تحليل الصورة بالذكاء الاصطناعي...";
-                    
-                    // محاكاة عملية التحليل (في الواقع نحتاج لمكتبة مثل Tesseract.js)
-                    setTimeout(() => {
-                        document.getElementById('status-text').innerText = "✅ تم التحليل بنجاح! إليك التوقعات القوية:";
-                        generateFinalPrediction();
-                    }, 2000);
-                }
-                reader.readAsDataURL(file);
+        const pad = document.getElementById('numpad');
+        for(let i=1; i<=36; i++) {
+            const btn = document.createElement('button');
+            btn.className = `n-btn ${redNums.includes(i) ? 'n-red' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => input(i);
+            pad.appendChild(btn);
+        }
+
+        function input(n) {
+            const color = n === 0 ? '#27AE60' : (redNums.includes(n) ? '#ff4d4d' : '#333');
+            logs.unshift({n, color});
+            if(logs.length > 5) logs.pop();
+            updateHistory();
+        }
+
+        function updateHistory() {
+            const grid = document.getElementById('h-grid');
+            grid.innerHTML = "";
+            for(let i=0; i<5; i++) {
+                const item = logs[i];
+                const node = document.createElement('div');
+                node.className = 'h-node';
+                node.style.backgroundColor = item ? item.color : '#111';
+                node.innerText = item ? item.n : '-';
+                grid.appendChild(node);
             }
         }
 
-        function generateFinalPrediction() {
-            for (let i = 1; i <= 4; i++) {
-                const slot = document.getElementById(`p${i}`);
-                let res;
-                let dice = Math.random() * 100;
+        function analyze() {
+            if(logs.length < 3) { alert("أدخل 3 أرقام من الطاولة أولاً!"); return; }
+            
+            const last = logs[0].n;
+            const idx = wheel.indexOf(last);
+            
+            // خوارزمية القناص: اختيار الرقم الجار الأقوى (Neighbor 1)
+            const sniperTarget = wheel[(idx + 1) % 37];
+            const isRed = redNums.includes(sniperTarget);
+            const isEven = sniperTarget !== 0 && sniperTarget % 2 === 0;
 
-                // ميزان ريكو (85% خضروات / 15% لحوم)
-                if (dice < 85) {
-                    res = fruits[Math.floor(Math.random() * fruits.length)];
-                } else {
-                    res = rares[Math.floor(Math.random() * rares.length)];
-                }
+            // تحديث الشاشة الرئيسية
+            document.getElementById('target-num').innerText = sniperTarget;
+            
+            const detColor = document.getElementById('det-color');
+            const detType = document.getElementById('det-type');
 
-                slot.style.transform = "scale(0.5)";
-                setTimeout(() => {
-                    slot.innerText = res;
-                    slot.style.transform = "scale(1)";
-                    slot.style.borderColor = (rares.includes(res)) ? "#D4AF37" : "#00FF00";
-                }, i * 200);
-            }
+            detColor.innerText = sniperTarget === 0 ? "أخضر" : (isRed ? "أحمر" : "أسود");
+            detType.innerText = sniperTarget === 0 ? "صفر" : (isEven ? "زوجي" : "فردي");
+
+            detColor.classList.add('active-detail');
+            detType.classList.add('active-detail');
         }
     </script>
 </body>
